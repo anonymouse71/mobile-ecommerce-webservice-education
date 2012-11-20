@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://xfire.codehaus.org/config/1.0">
+  
+   <service>
+     <name>chx</name>
+     <namespace>chx</namespace>
+     <serviceClass>com.sirius.chi.server.IMyServer</serviceClass>
+     <implementationClass>com.sirius.chi.server.MyServerImp</implementationClass>
+   </service>  
+  
+</beans>
