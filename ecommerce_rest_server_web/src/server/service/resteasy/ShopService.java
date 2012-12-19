@@ -1,0 +1,164 @@
+/*
+ * To change this template, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+package server.service.resteasy;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.URI;
+import java.util.ArrayList;
+import java.util.List;
+
+import javax.ejb.EJB;
+import javax.naming.Context;
+import javax.ws.rs.Consumes;
+import javax.ws.rs.DELETE;
+import javax.ws.rs.GET;
+import javax.ws.rs.POST;
+import javax.ws.rs.PUT;
+import javax.ws.rs.Path;
+import javax.ws.rs.PathParam;
+import javax.ws.rs.Produces;
+import javax.ws.rs.QueryParam;
+import javax.ws.rs.core.Response;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import server.entitybean.Product;
+import server.entitybean.ProductImpl;
+import server.entitybean.Products;
+import server.sessionbean.ShopBeanRemote;
+
+/**
+ * 
+ * @author Majid Khosravi
+ * 
+ */
+@Path("/RestEasy")
+public class ShopService {
+
+	private Context context = null;
+	ShopBeanRemote shop;
+
+	@EJB(name = "shop")
+	public void setCalculator(ShopBeanRemote shop) {
+		this.shop = shop;
+	}
+
+	public ShopService() {
+
+	}
+
+	@POST
+	@Path("/addProduct")
+	@Consumes({ "application/json", "application/xml" })
+	public Response addProduct(InputStream is) {
+
+		Product product = readProduct(is);
+		// System.out.println(product.getName());
+		shop.addProduct(product.getName(), product.getPicture(),
+				product.getPrice(), product.getQuantity(),
+				product.getDescription());
+		return Response.created(URI.create("/product/" + product.getId()))
+				.build();
+	}
+
+	private Product readProduct(InputStream is) {
+
+		Product product = null;
+
+		String result = convertStreamToString(is);
+
+		// A Simple JSONObject Creation
+		JSONObject json;
+		try {
+			json = new JSONObject(result);
+			product = new ProductImpl(json.getString("name"),
+					json.getString("picture"), json.getDouble("price"),
+					json.getInt("quantity"), json.getString("description"));
+
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+
+		return product;
+	}
+
+	@GET
+	@Path("/products")
+	@Produces({ "application/json", "application/xml" })
+	public Products getProducts(@QueryParam("keyword") final String query) {
+		String keyword = "";
+		if (query != null) {
+			keyword = query;
+		}
+
+		Products products = new Products();
+		List<ProductImpl> items = new ArrayList<ProductImpl>();
+		for (Product product : shop.getProducts(keyword)) {
+			items.add((ProductImpl) product);
+
+		}
+
+		products.setProducts(items);
+
+		return products;
+	}
+
+	@GET
+	@Path("/product/{id}")
+	@Produces({ "application/json", "application/xml" })
+	public ProductImpl getProduct(@PathParam("id") final int id) {
+
+		return (ProductImpl) shop.findProduct(id);
+	}
+
+	@PUT
+	@Path("/product/{id}/buy")
+	@Consumes({ "application/json", "application/xml" })
+	public Response buyProduct(@PathParam("id") final int id, InputStream is) {
+		Product product = readProduct(is);
+		shop.buyProduct(id, product.getQuantity());
+		return Response.created(URI.create("/product/" + id)).build();
+	}
+
+	@DELETE
+	@Path("/product/{id}/delete")
+	@Produces({ "application/json", "application/xml" })
+	public void delProduct(@PathParam("id") final int id) {
+		shop.delProduct(id);
+	}
+
+	private static String convertStreamToString(InputStream is) {
+		/*
+		 * To convert the InputStream to String we use the
+		 * BufferedReader.readLine() method. We iterate until the BufferedReader
+		 * return null which means there's no more data to read. Each line will
+		 * appended to a StringBuilder and returned as String.
+		 */
+		BufferedReader reader = new BufferedReader(new InputStreamReader(is));
+		StringBuilder sb = new StringBuilder();
+
+		String line = null;
+		try {
+			while ((line = reader.readLine()) != null) {
+				sb.append(line + "\n");
+			}
+		} catch (IOException e) {
+			e.printStackTrace();
+		} finally {
+			try {
+				is.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		return sb.toString();
+	}
+}

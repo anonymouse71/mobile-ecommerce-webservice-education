@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project-modules id="moduleCoreId" project-version="1.5.0">
+    <wb-module deploy-name="ecommerce_rest_server">
+        <wb-resource deploy-path="/" source-path="/EarContent" tag="defaultRootSource"/>
+        <dependent-module archiveName="ecommerce_rest_server_persistence.jar" deploy-path="/lib" handle="module:/resource/ecommerce_rest_server_persistence/ecommerce_rest_server_persistence">
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="ecommerce_rest_server_ejb.jar" deploy-path="/" handle="module:/resource/ecommerce_rest_server_ejb/ecommerce_rest_server_ejb">
+            <dependent-object/>
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+        <dependent-module archiveName="ecommerce_rest_server_web.war" deploy-path="/" handle="module:/resource/ecommerce_rest_server_web/ecommerce_rest_server_web">
+            <dependent-object/>
+            <dependency-type>uses</dependency-type>
+        </dependent-module>
+    </wb-module>
+</project-modules>
